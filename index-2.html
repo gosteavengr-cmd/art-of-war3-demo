@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Art of War 3 Archive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0c0d0a;
+    --bg2:#131510;
+    --panel:#181a13;
+    --line:#2c2e22;
+    --line-soft:#22241a;
+    --khaki:#8a8f5c;
+    --amber:#c9a24b;
+    --paper:#e8e4d4;
+    --paper-dim:#9b9887;
+    --confed:#4f8fc9;
+    --confed-dim:#2a4258;
+    --resist:#d4432b;
+    --resist-dim:#4a2620;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--paper);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+  }
+  ::selection{background:var(--amber); color:#000;}
+  a{color:inherit;}
+  button{font-family:inherit;}
+  img{display:block; max-width:100%;}
+
+  /* ============ WELCOME GATE ============ */
+  #gate{
+    position:fixed; inset:0; z-index:200;
+    background:var(--bg);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    transition:opacity .6s ease, visibility .6s ease;
+  }
+  #gate.hidden{opacity:0; visibility:hidden; pointer-events:none;}
+  .gate-grid{
+    position:absolute; inset:0;
+    background-image:linear-gradient(var(--line-soft) 1px, transparent 1px), linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size:56px 56px;
+    mask-image:radial-gradient(ellipse at center, black 0%, transparent 75%);
+  }
+  .gate-content{position:relative; z-index:2; text-align:center; padding:24px; max-width:640px;}
+  .gate-eyebrow{
+    font-family:'Oswald'; letter-spacing:0.35em; font-size:0.7rem; color:var(--amber);
+    text-transform:uppercase; margin-bottom:22px;
+  }
+  .gate-title{
+    font-family:'Bebas Neue'; font-size:clamp(3.2rem, 11vw, 7rem);
+    letter-spacing:0.03em; line-height:0.9; color:var(--paper);
+  }
+  .gate-title em{font-style:normal; color:var(--amber);}
+  .gate-sub{
+    font-family:'Oswald'; font-size:0.95rem; color:var(--paper-dim);
+    letter-spacing:0.03em; margin:20px auto 40px; max-width:440px;
+  }
+  .gate-enter{
+    font-family:'Oswald'; letter-spacing:0.12em; text-transform:uppercase; font-size:0.85rem;
+    padding:16px 44px;
+    background:var(--amber); color:#181a13; border:1px solid var(--amber);
+    cursor:pointer;
+    clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 100%, 14px 100%);
+    transition:all .25s;
+    font-weight:600;
+  }
+  .gate-enter:hover{filter:brightness(1.1); letter-spacing:0.16em;}
+  .gate-foot{
+    position:absolute; bottom:28px; font-family:'Oswald'; font-size:0.65rem;
+    letter-spacing:0.15em; color:var(--line); text-transform:uppercase;
+  }
+
+  /* ============ APP SHELL ============ */
+  #app{display:none; min-height:100vh; flex-direction:column;}
+  #app.active{display:flex;}
+
+  .topbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(12,13,10,0.95); backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+    padding:0 20px; height:56px;
+    display:flex; align-items:center; gap:24px;
+  }
+  .topbar .logo{
+    font-family:'Bebas Neue'; font-size:1.3rem; letter-spacing:0.03em; color:var(--paper);
+    display:flex; align-items:center; gap:8px; white-space:nowrap; cursor:pointer;
+  }
+  .topbar .logo .dot{width:7px; height:7px; background:var(--amber); border-radius:50%;}
+  .search-wrap{flex:1; max-width:420px; position:relative;}
+  .search-wrap input{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--paper);
+    padding:9px 14px 9px 36px; font-size:0.85rem; font-family:'Inter';
+  }
+  .search-wrap input:focus{outline:none; border-color:var(--khaki);}
+  .search-wrap::before{
+    content:"⌕"; position:absolute; left:12px; top:50%; transform:translateY(-50%);
+    color:var(--paper-dim); font-size:1rem;
+  }
+
+  main{flex:1; padding:44px 6vw 70px; max-width:1200px; margin:0 auto; width:100%;}
+  @media(max-width:600px){main{padding:30px 5vw 50px;}}
+
+  .view{display:none;}
+  .view.active{display:block; animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .crumb{
+    font-family:'Oswald'; font-size:0.7rem; letter-spacing:0.08em; color:var(--paper-dim);
+    text-transform:uppercase; margin-bottom:16px; cursor:pointer; display:inline-block;
+  }
+  .crumb:hover{color:var(--amber);}
+  .crumb span{color:var(--amber);}
+
+  .page-title{
+    font-family:'Bebas Neue'; font-size:clamp(2.4rem, 6vw, 3.6rem); letter-spacing:0.02em;
+    color:var(--paper); margin-bottom:10px;
+  }
+  .page-lede{color:var(--paper-dim); font-size:1rem; max-width:680px; margin-bottom:40px;}
+
+  .stub{
+    border:1px dashed var(--line); padding:30px 26px; color:var(--paper-dim);
+    font-size:0.9rem; max-width:640px;
+  }
+  .stub b{color:var(--amber); font-family:'Oswald'; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; display:block; margin-bottom:8px;}
+
+  .lore-body{max-width:720px;}
+  .lore-body h3{
+    font-family:'Oswald'; font-weight:600; font-size:1.05rem; color:var(--amber);
+    margin:34px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line-soft);
+  }
+  .lore-body h3:first-child{margin-top:0;}
+  .lore-body p{color:var(--paper-dim); font-size:0.95rem; margin-bottom:14px;}
+
+  /* ============ HOME TILES ============ */
+  .home-eyebrow{
+    font-family:'Oswald'; letter-spacing:0.3em; font-size:0.7rem; color:var(--amber);
+    text-transform:uppercase; margin-bottom:16px;
+  }
+  .home-title{
+    font-family:'Bebas Neue'; font-size:clamp(2.6rem, 7vw, 4.2rem); letter-spacing:0.02em;
+    margin-bottom:14px;
+  }
+  .home-sub{color:var(--paper-dim); max-width:600px; margin-bottom:52px; font-size:1rem;}
+
+  .tiles{
+    display:grid; grid-template-columns:repeat(2, 1fr); gap:20px;
+  }
+  @media(max-width:720px){.tiles{grid-template-columns:1fr;}}
+  .tile{
+    background:var(--panel); border:1px solid var(--line);
+    padding:34px 30px; cursor:pointer; position:relative; overflow:hidden;
+    transition:all .25s;
+    min-height:170px;
+    display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .tile:hover{border-color:var(--amber); transform:translateY(-3px);}
+  .tile .tile-num{
+    font-family:'Oswald'; font-size:0.7rem; letter-spacing:0.1em; color:var(--line); text-transform:uppercase;
+  }
+  .tile h3{
+    font-family:'Bebas Neue'; font-size:1.9rem; letter-spacing:0.02em; color:var(--paper); margin-top:20px;
+  }
+  .tile p{color:var(--paper-dim); font-size:0.85rem; margin-top:8px;}
+  .tile .arrow{
+    position:absolute; bottom:22px; right:26px; font-family:'Oswald'; font-size:1.3rem; color:var(--amber);
+    opacity:0; transform:translateX(-6px); transition:all .25s;
+  }
+  .tile:hover .arrow{opacity:1; transform:translateX(0);}
+
+  /* ============ HERO SPLIT LIST ============ */
+  .split-wrap{
+    display:grid; grid-template-columns:1fr 1fr; gap:0;
+    border:1px solid var(--line);
+  }
+  @media(max-width:720px){.split-wrap{grid-template-columns:1fr;}}
+  .faction-col{padding:26px;}
+  .faction-col.left{border-left:1px solid var(--line);}
+  @media(max-width:720px){.faction-col.left{border-left:none; border-top:1px solid var(--line);}}
+  .faction-head{
+    font-family:'Oswald'; font-size:0.78rem; letter-spacing:0.14em; text-transform:uppercase;
+    padding-bottom:14px; margin-bottom:18px; border-bottom:1px solid var(--line-soft);
+    display:flex; align-items:center; gap:10px;
+  }
+  .faction-head .swatch{width:10px; height:10px; border-radius:50%;}
+  .faction-col.confed .faction-head{color:var(--confed);}
+  .faction-col.confed .swatch{background:var(--confed);}
+  .faction-col.resist .faction-head{color:var(--resist);}
+  .faction-col.resist .swatch{background:var(--resist);}
+
+  .unit-list{display:flex; flex-direction:column; gap:12px;}
+  .unit-card{
+    display:flex; align-items:center; gap:16px;
+    background:var(--bg2); border:1px solid var(--line-soft);
+    padding:10px; cursor:pointer; transition:all .2s;
+  }
+  .unit-card:hover{transform:translateX(4px);}
+  .faction-col.confed .unit-card:hover{border-color:var(--confed);}
+  .faction-col.resist .unit-card:hover{border-color:var(--resist);}
+  .unit-thumb{
+    width:64px; height:64px; flex-shrink:0;
+    background:linear-gradient(160deg, #1d1f16, #050604);
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .unit-thumb img{width:100%; height:100%; object-fit:contain; padding:4px;}
+  .unit-name{font-family:'Oswald'; font-weight:500; font-size:1.02rem; color:var(--paper);}
+  .unit-tag{font-family:'Inter'; font-size:0.74rem; color:var(--paper-dim); margin-top:2px;}
+
+  /* ============ ARTICLE (hero detail) ============ */
+  .back-link{
+    font-family:'Oswald'; font-size:0.72rem; letter-spacing:0.06em; color:var(--paper-dim);
+    cursor:pointer; text-transform:uppercase; display:inline-flex; align-items:center; gap:6px;
+    margin-bottom:26px;
+  }
+  .back-link:hover{color:var(--amber);}
+  .article-wrap{display:grid; grid-template-columns:320px 1fr; gap:40px; align-items:start;}
+  @media(max-width:760px){.article-wrap{grid-template-columns:1fr;}}
+
+  .article-portrait{
+    background:linear-gradient(160deg, #1d1f16, #050604);
+    border:1px solid var(--line);
+    aspect-ratio:1/1;
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+  }
+  .article-portrait img{width:100%; height:100%; object-fit:contain; padding:20px;}
+  .article-portrait .faction-strip{
+    position:absolute; top:0; left:0; right:0; height:4px;
+  }
+  .article-portrait.confed .faction-strip{background:var(--confed);}
+  .article-portrait.resist .faction-strip{background:var(--resist);}
+
+  .article h1{font-family:'Bebas Neue'; font-size:clamp(2.2rem, 5vw, 3.4rem); color:var(--paper); letter-spacing:0.02em;}
+  .article .allegiance{
+    font-family:'Oswald'; font-size:0.85rem; letter-spacing:0.06em; margin:8px 0 26px; display:inline-flex;
+    align-items:center; gap:8px; text-transform:uppercase;
+  }
+  .article .allegiance .swatch{width:9px; height:9px; border-radius:50%;}
+  .article.confed .allegiance{color:var(--confed);}
+  .article.confed .allegiance .swatch{background:var(--confed);}
+  .article.resist .allegiance{color:var(--resist);}
+  .article.resist .allegiance .swatch{background:var(--resist);}
+
+  .article p{color:var(--paper-dim); margin-bottom:14px; font-size:0.96rem;}
+  .pilot-line{
+    display:flex; flex-direction:column; gap:2px; margin-bottom:26px;
+    padding:12px 16px; background:var(--panel); border:1px solid var(--line-soft); max-width:340px;
+  }
+  .pilot-line .pilot-label{font-family:'Oswald'; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--paper-dim);}
+  .pilot-line span:last-child{font-family:'Oswald'; font-size:0.95rem; color:var(--amber);}
+
+  footer.site-foot{
+    border-top:1px solid var(--line); padding:26px 6vw; text-align:center;
+    font-family:'Oswald'; font-size:0.72rem; letter-spacing:0.06em; color:var(--paper-dim); text-transform:uppercase;
+  }
+  footer.site-foot .credit{
+    color:var(--amber); cursor:pointer; text-decoration:underline; text-underline-offset:3px;
+  }
+  footer.site-foot .credit:hover{color:var(--paper);}
+
+  /* ============ PROFILE MODAL ============ */
+  .modal-bg{
+    position:fixed; inset:0; background:rgba(5,6,4,0.9);
+    z-index:150; display:none; align-items:center; justify-content:center;
+    padding:24px; backdrop-filter:blur(4px);
+  }
+  .modal-bg.open{display:flex;}
+  .modal{
+    background:var(--panel); border:1px solid var(--amber);
+    max-width:460px; width:100%; max-height:88vh; overflow-y:auto;
+    position:relative;
+  }
+  .modal img{width:100%; display:block;}
+  .modal-close{
+    position:absolute; top:10px; right:10px;
+    background:rgba(12,13,10,0.85); border:1px solid var(--line); color:var(--paper);
+    width:34px; height:34px; cursor:pointer; font-size:1.1rem;
+    transition:all .2s;
+  }
+  .modal-close:hover{border-color:var(--amber); color:var(--amber);}
+  .modal-caption{
+    padding:14px 18px; font-family:'Oswald'; font-size:0.75rem; letter-spacing:0.06em;
+    color:var(--paper-dim); text-transform:uppercase; text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ WELCOME GATE ============ -->
+<div id="gate">
+  <div class="gate-grid"></div>
+  <div class="gate-content">
+    <div class="gate-eyebrow">Unofficial Fan Archive</div>
+    <div class="gate-title">ART OF WAR 3<br><em>ARCHIVE</em></div>
+    <p class="gate-sub">A community-built encyclopedia of heroes, commanders, factions, and the war they're fighting.</p>
+    <button class="gate-enter" id="enterBtn">Enter Archive</button>
+  </div>
+  <div class="gate-foot">Classified · Community Maintained · 2026</div>
+</div>
+
+<!-- ============ MAIN APP ============ -->
+<div id="app">
+  <div class="topbar">
+    <div class="logo" id="logoHome"><span class="dot"></span>AOW3 ARCHIVE</div>
+    <div class="search-wrap"><input type="text" id="searchInput" placeholder="Search heroes…"></div>
+  </div>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="home-eyebrow">Archive Index</div>
+      <h1 class="home-title">Choose a Category</h1>
+      <p class="home-sub">Four sections make up the archive so far. Start anywhere — everything links back here.</p>
+      <div class="tiles">
+        <div class="tile" data-view="heroes">
+          <span class="tile-num">01</span>
+          <div>
+            <h3>Hero Stories</h3>
+            <p>Every hero unit on record — Confederation and Resistance, side by side.</p>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+        <div class="tile" data-view="commanders">
+          <span class="tile-num">02</span>
+          <div>
+            <h3>Commander Stories &amp; Secondary Characters</h3>
+            <p>Field commanders and the supporting cast behind them.</p>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+        <div class="tile" data-view="facility">
+          <span class="tile-num">03</span>
+          <div>
+            <h3>Facility Stories</h3>
+            <p>The organization that built this world before the war began.</p>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+        <div class="tile" data-view="mainstory">
+          <span class="tile-num">04</span>
+          <div>
+            <h3>Main Story</h3>
+            <p>The core conflict — how it started, and what's at stake.</p>
+          </div>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- HERO STORIES -->
+    <section class="view" id="view-heroes">
+      <div class="crumb" id="crumbHeroes">Archive <span>/ Hero Stories</span></div>
+      <h1 class="page-title">Hero Stories</h1>
+      <p class="page-lede">All twelve heroes, listed by allegiance. Blue marks the Confederation, red marks the Resistance. Click any unit to open its file.</p>
+
+      <div class="split-wrap">
+        <div class="faction-col resist">
+          <div class="faction-head"><span class="swatch"></span>Resistance</div>
+          <div class="unit-list" id="resistList"></div>
+        </div>
+        <div class="faction-col confed left">
+          <div class="faction-head"><span class="swatch"></span>Confederation</div>
+          <div class="unit-list" id="confedList"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HERO ARTICLE -->
+    <section class="view" id="view-article">
+      <div class="back-link" id="backLink">← Back to Hero Stories</div>
+      <div class="article-wrap">
+        <div class="article-portrait" id="aPortrait">
+          <span class="faction-strip"></span>
+          <img id="aImg" src="" alt="">
+        </div>
+        <div class="article" id="aArticle">
+          <h1 id="aName"></h1>
+          <span class="allegiance"><span class="swatch"></span><span id="aAllegiance"></span></span>
+          <div class="pilot-line" id="aPilotWrap" style="display:none;">
+            <span class="pilot-label">Pilot / Operator</span>
+            <span id="aPilot"></span>
+          </div>
+          <div id="aStoryBody"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMMANDERS & SECONDARY -->
+    <section class="view" id="view-commanders">
+      <div class="crumb" data-home>Archive <span>/ Commander Stories &amp; Secondary Characters</span></div>
+      <h1 class="page-title">Commander Stories &amp; Secondary Characters</h1>
+      <p class="page-lede">Field commanders who lead the heroes into battle, plus the support cast around them.</p>
+      <div class="stub"><b>Not yet written</b>Names, portraits, and stories go here once they're ready.</div>
+    </section>
+
+    <!-- FACILITY -->
+    <section class="view" id="view-facility">
+      <div class="crumb" data-home>Archive <span>/ Facility Stories</span></div>
+      <h1 class="page-title">The Syndicate</h1>
+      <p class="page-lede">The shadow organization behind both factions' war machines — and the man who controls it.</p>
+
+      <div class="lore-body">
+        <h3>When the Global Confederation Firmly Established Its Power</h3>
+        <p>When the Global Confederation firmly established its power in 2018, it seemed that a new era of stability was just around the corner. However, not everyone benefited. The military-industrial complex was hit the hardest: the Confederation cut military budgets and defense contractors shut down production. Thousands of engineers and workers found themselves unemployed.</p>
+        <p>Some adapted to the new rules. But many refused to accept their fate.</p>
+
+        <h3>Birth of the Syndicate</h3>
+        <p>In the shadow of the glittering future the Confederation promised, a secret group of former defense industry magnates emerged. For them, global peace meant financial ruin. Thus, the Syndicate was born — an organization driven by a far greater goal than merely regaining wealth and status. They wanted war. Perpetual war.</p>
+        <p>Large sums of money, moved covertly, fueled an aggressive technological race. While the Confederation made unprecedented scientific strides, the Syndicate still outpaced them by years. The turning point came with the discovery of a new element — Uranum. By purchasing all facilities capable of mining and processing it, the Syndicate created a series of breakthrough technologies that remained hidden from the rest of the world.</p>
+        <p>It was at this time that a legendary figure arose within the group: John Doe. His cold, calculated logic, sharp insight, and commanding presence enabled him to rise to the top, with no rivals left standing.</p>
+
+        <h3>The Situation in 2040</h3>
+        <p>Twenty years have passed. A global economic crisis developed due to growing social inequality — an issue the Confederation failed to address. This was at least in part a result of the Syndicate's machinations. It secretly lobbied favorable legislation in the Senate while sponsoring Resistance movements, cultivating pockets of instability.</p>
+        <p>By 2040, the Syndicate's influence had infiltrated every layer of society — from ministerial offices to underground rebel workshops to the high command of the Confederation. Both sides of the war became dependent on its arms, data, and technology. Each faction was promised victory, but the conflict only dragged on.</p>
+        <p>Neither the Confederation nor the Resistance welcomes this uncomfortable alliance — but both must accept it, for rejecting it would give the other side a decisive technological edge.</p>
+
+        <h3>A Secret Empire</h3>
+        <p>The Syndicate blends the structure of a corporate entity with the mystery of a secret order. John Doe fiercely protects his plans, even from his closest associates, revealing only what each unit needs to know.</p>
+        <p>Agents mask their identities under codenames, and many lead double lives — as public-facing corporate managers, scientists, or officials. Their neighbors would be none the wiser that the friendly face next door is part of a secret organization — or that they themselves are working for it via shell foundations, political parties, and companies.</p>
+
+        <h3>On the Cutting Edge of Progress</h3>
+        <p>Advanced data encryption technologies enable the Syndicate to control the global information flow. While investing in various scientific fields, it particularly favors two over others: autonomous combat systems and cybernetic implants. Prototype war machines, piloted by artificial intelligence, are already appearing on the battlefield.</p>
+        <p>Rumours paint an even darker picture. Some conspiracy theories claim the war itself was fomented, at least in part, to create more injured veterans — future clients for implants. Terrifying as it is to consider, only John Doe knows how much of this is true.</p>
+
+        <h3>The Syndicate's "Godfather"</h3>
+        <p>Officially, John Doe is "first among equals." Yet everyone who encounters him knows his power is nearly absolute. He controls Uranum extraction and processing, commands assets larger than state budgets, and manipulates people so masterfully that even the strongest-willed become pawns.</p>
+        <p>With age, he's had more and more cybernetic implants replace his weakening flesh. However, make no mistake — his mind remains ruthlessly cunning and fearsomely dangerous.</p>
+        <p>Thus, the Syndicate continues to weave its web of intrigues, turning the world into their chessboard. And while some fight for freedom and justice and others — for order and progress, only John Doe truly knows what's really at stake in this war.</p>
+      </div>
+    </section>
+
+    <!-- MAIN STORY -->
+    <section class="view" id="view-mainstory">
+      <div class="crumb" data-home>Archive <span>/ Main Story</span></div>
+      <h1 class="page-title">Main Story</h1>
+      <p class="page-lede">The core conflict driving Art of War 3.</p>
+      <div class="stub"><b>Not yet written</b>The main story summary goes here once it's written up — the setting, the central conflict, and how it ties the two factions together.</div>
+    </section>
+
+  </main>
+
+  <footer class="site-foot">
+    Art of War 3 — Unofficial Fan Archive &nbsp;·&nbsp; Website developed by <span class="credit" id="creditBtn">Ghost_Avenger</span>
+  </footer>
+</div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">✕</button>
+    <img src="images/profile.jpg" alt="Ghost_Avenger profile">
+    <div class="modal-caption">Ghost_Avenger — Site Developer</div>
+  </div>
+</div>
+
+<script>
+/* ---------- DATA ---------- */
+const heroes = [
+  { id:"cerberus",  name:"Cerberus",  faction:"confed", image:"images/cerberus.webp"  },
+  { id:"beholder",  name:"Beholder",  faction:"confed", image:"images/beholder.webp"  },
+  { id:"seraphim",  name:"Seraphim",  faction:"confed", image:"images/seraphim.webp",
+    pilot:"Enrico Machiavelli",
+    story:"Enrico Machiavelli is the pilot of the experimental transforming fighter aircraft \"Seraphim.\" Once, he was a Catholic priest serving in an ordinary parish. Everything changed when the terrorist group \"Vendetta Popolare\" carried out an attack inside his church, claiming the lives of dozens of innocent worshippers. Enrico survived only thanks to his courage and quick thinking, but suffered severe injuries.\n\nAfter leaving the clergy, he joined the Confederate Air Force, where he quickly distinguished himself through his composure, discipline, and exceptional piloting talent. For this reason, High Command selected him to operate the next-generation experimental fighter \"Seraphim.\" His faith has since been tempered by war, and his vow to protect the innocent now echoes from the cockpit of a combat aircraft."
+  },
+  { id:"psion",     name:"Psion",     faction:"confed", image:"images/psion.webp"     },
+  { id:"atlas",     name:"Atlas",     faction:"confed", image:"images/atlas.webp"     },
+  { id:"solaris",   name:"Solaris",   faction:"confed", image:"images/solaris.webp"   },
+  { id:"wasp",      name:"Wasp",      faction:"resist", image:"images/wasp.webp"      },
+  { id:"wolverine", name:"Wolverine", faction:"resist", image:"images/wolverine.webp" },
+  { id:"mole",      name:"Mole",      faction:"resist", image:"images/mole.webp",
+    pilot:"Grigory Stakhanov",
+    story:"Grigory Stakhanov is the pilot of the engineering vehicle \"Mole\" and the leader of the Ural miners. The grandson of a legendary worker, he grew up among the mines and factories of the Ural Mining Region, where the Confederation's promises of a better life never became reality. Years of hard labor and injustice eventually led to the largest strike in the region's history, led by Grigory himself in 2037.\n\nFollowing news of the successful uprising in Peru, the miners declared the region's independence. Later, Grigory personally met with General José Monteros and joined the global Resistance. His extensive experience with industrial machinery proved invaluable when the army needed a pilot for the heavy engineering prototype known as the \"Mole\"."
+  },
+  { id:"salamander",name:"Salamander",faction:"resist", image:"images/salamander.webp"},
+  { id:"leviathan", name:"Leviathan", faction:"resist", image:"images/leviathan.webp" },
+  { id:"bison",     name:"Bison",     faction:"resist", image:"images/bison.webp"     },
+];
+
+/* ---------- VIEW SWITCHING ---------- */
+function showView(id){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + id).classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.querySelectorAll('.tile[data-view]').forEach(t => {
+  t.addEventListener('click', () => showView(t.dataset.view));
+});
+document.querySelectorAll('[data-home]').forEach(el => {
+  el.addEventListener('click', () => showView('home'));
+});
+document.getElementById('crumbHeroes').addEventListener('click', () => showView('home'));
+document.getElementById('logoHome').addEventListener('click', () => showView('home'));
+
+/* ---------- RENDER HERO LISTS ---------- */
+function unitCardHTML(h){
+  return `
+    <div class="unit-card" data-id="${h.id}">
+      <div class="unit-thumb"><img src="${h.image}" alt="${h.name}"></div>
+      <div>
+        <div class="unit-name">${h.name}</div>
+        <div class="unit-tag">${h.faction === 'confed' ? 'Confederation' : 'Resistance'}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderLists(){
+  const confedList = document.getElementById('confedList');
+  const resistList = document.getElementById('resistList');
+  confedList.innerHTML = heroes.filter(h => h.faction === 'confed').map(unitCardHTML).join('');
+  resistList.innerHTML = heroes.filter(h => h.faction === 'resist').map(unitCardHTML).join('');
+  attachCardEvents();
+}
+
+function attachCardEvents(){
+  document.querySelectorAll('.unit-card').forEach(card => {
+    card.addEventListener('click', () => openArticle(card.dataset.id));
+  });
+}
+
+/* ---------- ARTICLE DETAIL ---------- */
+function openArticle(id){
+  const h = heroes.find(x => x.id === id);
+  if(!h) return;
+  document.getElementById('aName').textContent = h.name;
+  document.getElementById('aAllegiance').textContent = h.faction === 'confed' ? 'Confederation' : 'Resistance';
+  document.getElementById('aImg').src = h.image;
+  document.getElementById('aImg').alt = h.name;
+
+  const pilotWrap = document.getElementById('aPilotWrap');
+  if(h.pilot){
+    pilotWrap.style.display = 'flex';
+    document.getElementById('aPilot').textContent = h.pilot;
+  } else {
+    pilotWrap.style.display = 'none';
+  }
+
+  const storyBody = document.getElementById('aStoryBody');
+  const storyText = h.story || 'Story coming soon.';
+  storyBody.innerHTML = storyText.split('\n\n').map(p => `<p>${p}</p>`).join('');
+
+  const portrait = document.getElementById('aPortrait');
+  const article = document.getElementById('aArticle');
+  portrait.classList.remove('confed','resist');
+  article.classList.remove('confed','resist');
+  portrait.classList.add(h.faction);
+  article.classList.add(h.faction);
+
+  showView('article');
+}
+
+document.getElementById('backLink').addEventListener('click', () => showView('heroes'));
+
+/* ---------- SEARCH ---------- */
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if(q.length === 0){ renderLists(); return; }
+  const confedList = document.getElementById('confedList');
+  const resistList = document.getElementById('resistList');
+  const matches = heroes.filter(h => h.name.toLowerCase().includes(q));
+  confedList.innerHTML = matches.filter(h => h.faction === 'confed').map(unitCardHTML).join('') || '<p style="color:var(--paper-dim); font-size:0.85rem;">No matches.</p>';
+  resistList.innerHTML = matches.filter(h => h.faction === 'resist').map(unitCardHTML).join('') || '<p style="color:var(--paper-dim); font-size:0.85rem;">No matches.</p>';
+  attachCardEvents();
+  showView('heroes');
+});
+
+/* ---------- GATE ---------- */
+document.getElementById('enterBtn').addEventListener('click', () => {
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('app').classList.add('active');
+});
+
+/* ---------- PROFILE MODAL ---------- */
+const modalBg = document.getElementById('modalBg');
+document.getElementById('creditBtn').addEventListener('click', () => modalBg.classList.add('open'));
+document.getElementById('modalClose').addEventListener('click', () => modalBg.classList.remove('open'));
+modalBg.addEventListener('click', e => { if(e.target === modalBg) modalBg.classList.remove('open'); });
+
+/* ---------- INIT ---------- */
+renderLists();
+</script>
+
+</body>
+</html>
